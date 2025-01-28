@@ -1,87 +1,55 @@
 <template>
   <main class="titel_page">
     <div class="login-form">
-      <h2>Authorization</h2>
-      <form @submit.prevent="handleLogin">
+      <h2 class="text_title">Authorization</h2>
+      <form @submit.prevent="login">
         <div class="form-group">
-          <label for="username">Login</label>
-          <input
-            class="input_set"
-            type="text"
-            id="username"
-            v-model="username"
-            required
-          />
+          <label for="username">Username:</label>
+          <input type="text" id="username" v-model="username" required />
         </div>
         <div class="form-group">
-          <label for="password">Password</label>
-          <input
-            class="input_set"
-            type="password"
-            id="password"
-            v-model="password"
-            required
-          />
+          <label for="password">Password:</label>
+          <input type="password" id="password" v-model="password" required />
         </div>
-        <button type="submit">Submit</button>
+        <button type="submit">Login</button>
+        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
       </form>
-      <div v-if="error" class="error-message">{{ error }}</div>
-      <div v-if="success" class="success-message">Login successful!</div>
     </div>
   </main>
 </template>
 
 <script>
 export default {
+  name: "Login",
   data() {
     return {
-      username: "", 
-      password: "", 
-      error: null, 
-      success: false, 
+      username: "",
+      password: "",
+      errorMessage: "",
     };
   },
   methods: {
-    async handleLogin() {
-      this.error = null; 
-      this.success = false; 
-
+    async login() {
       try {
-        
         const response = await fetch("https://dummyjson.com/auth/login", {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             username: this.username,
             password: this.password,
           }),
         });
-
-      
-       
         const data = await response.json();
-
-       
-        localStorage.setItem("user", JSON.stringify(data));
-        localStorage.setItem("accessToken", data.accessToken);
-        localStorage.setItem("refreshToken", data.refreshToken);
-
-       
-        this.success = true;
-
- 
-        this.username = "";
-        this.password = "";
-      } catch (error) {
-        console.error("Login error:", error);
-        this.error = error.message || "Login failed. Please try again.";
-      }
-
-
-      if (!response.ok) {
-          throw new Error("Invalid username or password");
+        if (response.ok) {
+          localStorage.setItem("token", data.accessToken);
+          this.$router.push("/profile");
+        } else {
+          this.errorMessage = data.message || 'Ошибка авторизации';
         }
-
+      } catch (error) {
+        console.error("Ошибка при выполнении запроса:", error);
+        this.errorMessage = 'Ошибка сервера';
+      }
     },
   },
 };
@@ -132,27 +100,5 @@ button {
   color: red;
   font-family: sans-serif;
   margin-top: 10px;
-}
-.success-message {
-  color: green;
-  font-family: sans-serif;
-  margin-top: 10px;
-}
-.titel_page {
-  background-color: #ffffff;
-  padding: 25px;
-  height: 480px;
-  padding-inline: 205px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0px 105px 0px 105px;
-}
-.login-form {
-  width: 408px;
-  height: 215px;
-}
-.login-form h2 {
-  font-family: sans-serif;
 }
 </style>
